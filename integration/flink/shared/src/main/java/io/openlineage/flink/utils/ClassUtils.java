@@ -48,4 +48,16 @@ public class ClassUtils {
     }
     return false;
   }
+
+  public static boolean hasLakeSoulClasses() {
+    try {
+      ClassUtils.class
+              .getClassLoader()
+              .loadClass("org.apache.flink.lakesoul.source.LakeSoulSource");
+      return true;
+    } catch (Exception e) {
+      // swallow- we don't care
+    }
+    return false;
+  }
 }

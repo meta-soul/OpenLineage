@@ -40,6 +40,10 @@ public class VisitorFactoryImpl implements VisitorFactory {
       visitors.add(new JdbcSourceVisitor(context));
     }
 
+    if (ClassUtils.hasLakeSoulClasses()) {
+      visitors.add(new LakeSoulSourceVisitor(context));
+    }
+
     visitors.add(new HybridSourceVisitor(context));
 
     return Collections.unmodifiableList(visitors);
@@ -64,6 +68,10 @@ public class VisitorFactoryImpl implements VisitorFactory {
 
     if (ClassUtils.hasJdbcClasses()) {
       visitors.add(new JdbcSinkVisitor(context));
+    }
+
+    if (ClassUtils.hasLakeSoulClasses()) {
+      visitors.add(new LakeSoulSinkVisitor(context));
     }
 
     return Collections.unmodifiableList(visitors);
