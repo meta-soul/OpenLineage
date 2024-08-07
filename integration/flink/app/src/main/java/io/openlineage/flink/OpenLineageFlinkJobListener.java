@@ -148,7 +148,7 @@ public class OpenLineageFlinkJobListener implements JobListener {
 
   @Override
   public void onJobSubmitted(@Nullable JobClient jobClient, @Nullable Throwable throwable) {
-    log.info("onJobSubmitted event triggered for {}.{}", jobNamespace, jobName);
+    log.info("--------onJobSubmitted event triggered for {}.{}", jobNamespace, jobName);
     if (jobClient == null) {
       return;
     }
@@ -166,7 +166,6 @@ public class OpenLineageFlinkJobListener implements JobListener {
       List<Transformation<?>> transformations =
           ((ArchivedList<Transformation<?>>) transformationsField.get(executionEnvironment))
               .getValue();
-
       FlinkExecutionContext context =
           FlinkExecutionContextFactory.getContext(
               (Configuration) executionEnvironment.getConfiguration(),
@@ -178,8 +177,7 @@ public class OpenLineageFlinkJobListener implements JobListener {
 
       jobContexts.put(jobClient.getJobID(), context);
       context.onJobSubmitted();
-
-      jobTracker.startTracking(context);
+      //      jobTracker.startTracking(context);
     } catch (IllegalAccessException e) {
       log.error("Can't access the field. ", e);
     }
@@ -188,9 +186,9 @@ public class OpenLineageFlinkJobListener implements JobListener {
   @Override
   public void onJobExecuted(
       @Nullable JobExecutionResult jobExecutionResult, @Nullable Throwable throwable) {
-    log.info("onJobExecuted event triggered for {}.{}", jobNamespace, jobName);
+    log.info("----------onJobExecuted event triggered for {}.{}", jobNamespace, jobName);
     try {
-      jobTracker.stopTracking();
+      //      jobTracker.stopTracking();
       finish(jobExecutionResult, throwable);
     } catch (Exception | NoClassDefFoundError | NoSuchFieldError e) {
       log.error("Failed to notify OpenLineage about complete", e);

@@ -3,35 +3,32 @@
 /* SPDX-License-Identifier: Apache-2.0
 */
 
-package io.openlineage.flink.visitor;
+package org.apache.flink.streaming.api.transformations;
 
 import io.openlineage.client.OpenLineage;
 import io.openlineage.flink.api.OpenLineageContext;
 import io.openlineage.flink.utils.LakeSoulUtils;
+import io.openlineage.flink.visitor.Visitor;
 import java.util.Collections;
 import java.util.List;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
 import org.apache.flink.lakesoul.sink.LakeSoulMultiTablesSink;
 import org.apache.flink.lakesoul.sink.bucket.BucketsBuilder;
 import org.apache.flink.lakesoul.sink.bucket.DefaultOneTableBulkFormatBuilder;
 import org.apache.flink.lakesoul.types.TableSchemaIdentity;
 
 @Slf4j
-public class LakeSoulSinkVisitor extends Visitor<OpenLineage.OutputDataset> {
-  public LakeSoulSinkVisitor(@NonNull OpenLineageContext context) {
+public class LakeSoulMutilTableSinkVisitor extends Visitor<OpenLineage.OutputDataset> {
+  public LakeSoulMutilTableSinkVisitor(@NonNull OpenLineageContext context) {
     super(context);
   }
 
   @Override
   public boolean isDefinedAt(Object sink) {
     log.info("--------openlineage-lakesoul sink isdefined");
-    String className = "org.apache.flink.lakesoul.sink.state.LakeSoulSinkCommittableSerializer";
-    if (sink instanceof TwoPhaseCommittingSink
-        && className.equals(
-            ((TwoPhaseCommittingSink) sink).getCommittableSerializer().getClass().getName())) {
-      return true;
+    if (sink instanceof SinkV1Adapter.PlainSinkAdapter) {
+      return ((SinkV1Adapter.PlainSinkAdapter) sink).getSink() instanceof LakeSoulMultiTablesSink;
     }
     return sink instanceof LakeSoulMultiTablesSink
         && isOneTableSink((LakeSoulMultiTablesSink) sink);
@@ -62,8 +59,12 @@ public class LakeSoulSinkVisitor extends Visitor<OpenLineage.OutputDataset> {
   }
 
   private TableSchemaIdentity getTableIdentity(Object sink) {
-    if (sink instanceof LakeSoulMultiTablesSink) {
-      LakeSoulMultiTablesSink lakeSoulMultiTablesSink = (LakeSoulMultiTablesSink) sink;
+    Object lakeObject = null;
+    if (sink instanceof SinkV1Adapter.PlainSinkAdapter) {
+      lakeObject = ((SinkV1Adapter.PlainSinkAdapter) sink).getSink();
+    }
+    if (lakeObject instanceof LakeSoulMultiTablesSink) {
+      LakeSoulMultiTablesSink lakeSoulMultiTablesSink = (LakeSoulMultiTablesSink) lakeObject;
       BucketsBuilder bucketsBuilder = lakeSoulMultiTablesSink.getBucketsBuilder();
       if (bucketsBuilder instanceof DefaultOneTableBulkFormatBuilder) {
         DefaultOneTableBulkFormatBuilder builder =
@@ -76,7 +77,8 @@ public class LakeSoulSinkVisitor extends Visitor<OpenLineage.OutputDataset> {
       }
     } else {
       throw new UnsupportedOperationException(
-          String.format("Unsupported LakeSoul sink type %s", sink.getClass().getCanonicalName()));
+          String.format(
+              "Unsupported LakeSoul sink type %s", lakeObject.getClass().getCanonicalName()));
     }
   }
 }

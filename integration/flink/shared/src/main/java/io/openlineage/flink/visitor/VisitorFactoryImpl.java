@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.streaming.api.transformations.LakeSoulMutilTableSinkVisitor;
 
 @Slf4j
 public class VisitorFactoryImpl implements VisitorFactory {
@@ -71,7 +72,7 @@ public class VisitorFactoryImpl implements VisitorFactory {
     }
 
     if (ClassUtils.hasLakeSoulClasses()) {
-      visitors.add(new LakeSoulSinkVisitor(context));
+      visitors.add(new LakeSoulMutilTableSinkVisitor(context));
     }
 
     return Collections.unmodifiableList(visitors);

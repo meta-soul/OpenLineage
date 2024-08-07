@@ -66,7 +66,7 @@ public class FlinkExecutionContext implements ExecutionContext {
 
   @Override
   public void onJobSubmitted() {
-    log.debug("JobClient - jobId: {}", jobId);
+    log.debug("openlinage On jobsubmit: JobClient - jobId: {}", jobId);
     circuitBreaker.run(
         () -> {
           RunEvent runEvent =
@@ -83,7 +83,7 @@ public class FlinkExecutionContext implements ExecutionContext {
 
   @Override
   public void onJobCheckpoint(CheckpointFacet facet) {
-    log.debug("JobClient - jobId: {}", jobId);
+    log.debug("openlinage On checkpoint:JobClient - jobId: {}", jobId);
     circuitBreaker.run(
         () -> {
           RunEvent runEvent =
@@ -104,6 +104,7 @@ public class FlinkExecutionContext implements ExecutionContext {
   }
 
   public RunEventBuilder buildEventForEventType(EventType eventType) {
+    log.debug("openlinage event type ： ", eventType);
     TransformationUtils converter = new TransformationUtils();
 
     List<SinkLineage> sinkLineages = converter.convertToVisitable(transformations);
@@ -124,6 +125,7 @@ public class FlinkExecutionContext implements ExecutionContext {
 
   @Override
   public void onJobCompleted(JobExecutionResult jobExecutionResult) {
+    log.debug("openlinage On jobcomplete:JobClient - jobId: {}", jobId);
     circuitBreaker.run(
         () -> {
           OpenLineage openLineage = openLineageContext.getOpenLineage();
@@ -140,6 +142,7 @@ public class FlinkExecutionContext implements ExecutionContext {
 
   @Override
   public void onJobFailed(Throwable failed) {
+    log.debug("openlinage On failed:JobClient - jobId: {}", jobId);
     circuitBreaker.run(
         () -> {
           OpenLineage openLineage = openLineageContext.getOpenLineage();

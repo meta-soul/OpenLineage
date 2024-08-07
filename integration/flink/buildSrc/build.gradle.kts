@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     gradlePluginPortal()
     mavenCentral()
     maven("https://packages.confluent.io/maven/")
