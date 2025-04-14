@@ -30,7 +30,7 @@ public class TransportResolver {
   }
 
   private static TransportBuilder getTransportBuilder(Predicate<TransportBuilder> predicate) {
-    ServiceLoader<TransportBuilder> loader = ServiceLoader.load(TransportBuilder.class);
+    ServiceLoader<TransportBuilder> loader = ServiceLoader.load(TransportBuilder.class, TransportBuilder.class.getClassLoader());
     Optional<TransportBuilder> optionalBuilder =
         StreamSupport.stream(loader.spliterator(), false).filter(predicate).findFirst();
 
