@@ -178,8 +178,8 @@ public class OpenLineageFlinkJobListener implements JobListener {
       jobContexts.put(jobClient.getJobID(), context);
       context.onJobSubmitted();
       //      jobTracker.startTracking(context);
-    } catch (IllegalAccessException e) {
-      log.error("Can't access the field. ", e);
+    } catch (Throwable e) {
+      log.error("Cannot start open lineage job listener", e);
     }
   }
 

@@ -11,11 +11,15 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.dag.Transformation;
 import org.apache.flink.streaming.api.functions.source.InputFormatSourceFunction;
+import org.apache.flink.streaming.api.operators.SimpleOperatorFactory;
+import org.apache.flink.streaming.api.operators.StreamOperator;
+import org.apache.flink.streaming.api.operators.StreamSink;
 import org.apache.flink.streaming.api.transformations.LegacySinkTransformation;
 import org.apache.flink.streaming.api.transformations.LegacySourceTransformation;
 import org.apache.flink.streaming.api.transformations.OneInputTransformation;
 import org.apache.flink.streaming.api.transformations.SinkTransformation;
 import org.apache.flink.streaming.api.transformations.SourceTransformation;
+import org.apache.flink.table.runtime.operators.sink.SinkOperator;
 
 /**
  * Transform list-of-connected-dags-like structure to list of sources and sinks TODO: have to
@@ -43,6 +47,9 @@ public class TransformationUtils {
     } else if (transformation instanceof LegacySinkTransformation) {
       log.debug("Processing legacy sink", transformation);
       sink = processLegacySinkTransformation(transformation);
+      if (sink == null) {
+        return Optional.empty();
+      }
     } else if (transformation instanceof OneInputTransformation) {
       log.debug("Processing one input transformation", transformation);
       sink = transformation;
@@ -91,7 +98,18 @@ public class TransformationUtils {
 
   public Object processLegacySinkTransformation(Transformation<?> genericTransformation) {
     LegacySinkTransformation transformation = (LegacySinkTransformation) genericTransformation;
-    log.info("Processing legacy sink operator {}", transformation.getOperator().getUserFunction());
-    return transformation.getOperator().getUserFunction();
+    SimpleOperatorFactory<Object> factory = (SimpleOperatorFactory<Object>) transformation.getOperatorFactory();
+    StreamOperator operator = factory.getOperator();
+    Object userFunction;
+    if (operator instanceof StreamSink) {
+      userFunction = ((StreamSink<?>) operator).getUserFunction();
+    } else if (operator instanceof SinkOperator) {
+      userFunction = ((SinkOperator) operator).getUserFunction();
+    } else {
+      log.warn("Unknown operator in sink transformation: " + operator);
+      return null;
+    }
+    log.info("Processing legacy sink operator {}", userFunction);
+    return userFunction;
   }
 }
